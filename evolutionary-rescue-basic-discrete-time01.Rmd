@@ -264,7 +264,7 @@ mating_function <- function(N_RR_new, N_Rr_new, N_rr_new){
   #computing total new population
   total_new = N_RR_new + N_RR_new + N_rr_new
   
-  freq_p = (N_RR_new * 2 + N_Rr_new )/ 2 * total_new
+  freq_p = (N_RR_new * 2 + N_Rr_new )/ (2 * total_new)
   freq_q = 1 - freq_p
   
   #hardy weinberg random mating
@@ -338,7 +338,7 @@ simulate_pop_diploid <- function(N_RR, N_Rr, N_rr, decay_rate, sel_coeffs, mut_r
     # add the new population sizes to the output vector
     pop_vector <- rbind(pop_vector,pop_new)
     # condition to stop the simulation before t_max: either the population exceeds 1.5 times the original population size, or it goes extinct
-    if (pop_new[1]+pop_new[2]+pop_new[3] >= 1.5*(Init_RR + Init_Rr + Init_rr) | pop_new[1]+pop_new[2]+ pop_new[3]==0) break
+    if ((pop_new[1]+pop_new[2]+pop_new[3] >= 1.5*(Init_RR + Init_Rr + Init_rr)) | (pop_new[1]+pop_new[2]+ pop_new[3])==0) break
   }
   
   # define the row and column names of the output vector
