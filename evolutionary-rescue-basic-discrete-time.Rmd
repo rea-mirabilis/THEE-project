@@ -391,11 +391,11 @@ lines(x_range,output[,3], col="green")
 #mut_rate = mutation rate (>=0)
 
 # Function to simulate random mating for diploid genotypes
-mating_function <- function(N_RRRR_new, N_RRRr_new, N_RRrr_new, N_Rrrr_new, N_rrrr_new){
+mating_function <- function(N_RRRR_new, N_RRRr_new, N_RRrr_new, N_Rrrr_new, N_rrrr_new, decay_rate){
   #computing total new population
   total_new = N_RRRR_new + N_RRRr_new + N_RRrr_new + N_Rrrr_new + N_rrrr_new
   
-  freq_p = (N_RRRR_new * 4 + N_RRRr_new * 3 + N_RRrr_new * 2 + N_Rrrr )/ (4 * total_new)
+  freq_p = (N_RRRR_new * 4 + N_RRRr_new * 3 + N_RRrr_new * 2 + N_Rrrr_new )/ (4 * total_new)
   freq_q = 1 - freq_p
   
   #hardy weinberg random mating
@@ -414,7 +414,101 @@ mating_function <- function(N_RRRR_new, N_RRRr_new, N_RRrr_new, N_Rrrr_new, N_rr
   N_Rrrr_new <- freq_Rrrr * total_new
   N_rrrr_new <- freq_rrrr * total_new
 
+   # set selective coeffs of different genotypes
+  # Apply decay and selection coefficients for each genotype
+  offsp_RRRR <- rpois(1, N_RRRR_new * (1 - decay_rate + sel_coeffs[1]))
+  offsp_RRRr <- rpois(1, N_RRRr_new * (1 - decay_rate + sel_coeffs[2]))
+  offsp_RRrr <- rpois(1, N_RRrr_new * (1 - decay_rate + sel_coeffs[3]))
+  offsp_Rrrr <- rpois(1, N_Rrrr_new * (1 - decay_rate + sel_coeffs[4]))
+  offsp_rrrr <- rpois(1, N_rrrr_new * (1 - decay_rate + sel_coeffs[5]))
   
-return(c(N_RR_new, N_Rr_new, N_rr_new))
+return(c(offsp_RRRR, offsp_RRRr, offsp_RRrr, offsp_Rrrr, offsp_rrrr))
 }
+```
+
+# simulating one generation tetraploid
+
+```{r}
+# setting the selective coeff of each genotype, order of RRRR RRRr RRrr Rrrr rrrr
+sel_coeffs = c(0.01,0.5,0.8,0.5,0.01)
+
+# Function to simulate one generation for diploid genotypes
+simulate_one_gen_tetraploid <- function(N_RRRR, N_RRRr, N_RRrr, N_Rrrr, N_rrrr, decay_rate, sel_coeffs, mut_rate) {
+  
+  # Mutations between genotypes (mutations from R to r, and vice versa)
+  mut_RRRR_to_RRRr <- rpois(1, N_RRRR * mut_rate)  # RRRR individuals mutate into RRRr
+  mut_RRRr_to_RRRR <- rpois(1, N_RRRR * mut_rate)  # RRRr individuals mutate into RRRR
+  mut_RRRr_to_RRrr <- rpois(1, N_RRRr * mut_rate)  # RRRr individuals mutate into RRrr
+  mut_RRrr_to_Rrrr <- rpois(1, N_RRrr * mut_rate)  # RRrr individuals mutate into Rrrr
+  mut_Rrrr_to_RRrr <- rpois(1, N_Rrrr * mut_rate)  # Rrrr individuals mutate into RRrr
+  mut_rrrr_to_Rrrr <- rpois(1, N_rrrr * mut_rate)  # rrrr individuals mutate into Rrrr
+  
+# HERE, I am not sure which mutations should I consider, should it be like everyone can mutate to their neighbor or only some types of mutations?
+  
+  
+  # Update population sizes based on mutations and offspring survival
+  N_RRRR_new <- max(N_RRRR + mut_RRRr_to_RRRR - mut_RRRR_to_RRRr, 0)
+  N_RRRr_new <- max(N_RRRr + mut_RRRR_to_RRRr - mut_RRRr_to_RRrr, 0)
+  N_RRrr_new <- max(N_RRrr + mut_Rrrr_to_RRrr - mut_RRrr_to_Rrrr, 0)
+  N_Rrrr_new <- max(N_Rrrr + mut_RRrr_to_Rrrr - mut_Rrrr_to_RRrr, 0)
+  N_rrrr_new <- max(N_rrrr - mut_rrrr_to_Rrrr, 0)
+  
+  
+  #call the mating function for creating offspring
+  mating_function(N_RRRR_new, N_RRRr_new, N_RRrr_new, N_Rrrr_new, N_rrrr_new, decay_rate)
+}
+
+
+#setting the numbers of the initial population
+Init_RRRR = 100
+Init_RRRr = 100
+Init_RRrr = 100
+Init_Rrrr = 100
+Init_rrrr = 100
+
+#test the function
+print(simulate_one_gen_tetraploid(Init_RRRR, Init_RRRr, Init_RRrr, Init_Rrrr, Init_rrrr, 0.1, sel_coeffs, 0.01))
+```
+
+# simulating population tetraploid(not started)
+
+```{r}
+simulate_pop <- function(N_init_a, N_init_A, decay_rate, sel_coeff, mut_rate, t_max) {
+  # Create the vector in which to save the results
+  pop_vector <- c(N_init_a, N_init_A)
+  # initiate the variables
+  pop_new <- c(N_init_a, N_init_A)
+  
+  # run the simulation until generation t_max
+  for (i in 1:t_max+1) {
+    # redefine the current population one generation later
+    pop_new <- simulate_one_gen(pop_new[1],pop_new[2], decay_rate, sel_coeff, mut_rate)
+    # add the new population sizes to the output vector
+    pop_vector <- rbind(pop_vector,pop_new)
+    # condition to stop the simulation before t_max: either the population exceeds 1.5 times the original population size, or it goes extinct
+    if (pop_new[1]+pop_new[2]>=1.5*(N_init_a+ N_init_A) | pop_new[1]+pop_new[2]==0) break
+  }
+  
+  # define the row and column names of the output vector
+  rownames(pop_vector) <- (0:t_max)[1:length(pop_vector[,1])] # note that the vector has to be cut if the simulation stopped early
+  colnames(pop_vector) <- c("a","A")
+  # return the result
+  return(pop_vector)	
+}
+# Test the function and plot the result
+# set t_max to a value to be used througout
+max_gen <- 1000
+# create your simulation data
+output <- simulate_pop(100,0,0.1,0.2,0.01,max_gen)
+# show the last few lines of the data table
+print(tail(output))
+# plot the output - note that the plot range and the x axis have to be adjusted based on the length of the table
+# determine x axis range 
+x_range <- 0:(length(output[,1])-1)
+# this plots the total population size
+plot(x_range,output[,1]+output[,2],type='l',ylim=c(0,max(output[,1]+output[,2])),xlab = "Generation",ylab = "Population size")
+# add number of wild type individuals
+lines(x_range,output[,1], col="blue")
+# add number of mutant individuals
+lines(x_range,output[,2], col="red")
 ```
