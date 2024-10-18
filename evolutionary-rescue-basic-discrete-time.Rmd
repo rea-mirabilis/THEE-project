@@ -238,11 +238,10 @@ Initial population size of rrrr individuals
 
 T_max = maximum generation number.
 
-
 # simulating one generation in a diploid population
 
-
 ### first the mating function according to hardy weinberg
+
 ```{r}
 ### variables and parameters for diploid population
 #Variables:
@@ -264,7 +263,7 @@ mating_function <- function(N_RR_new, N_Rr_new, N_rr_new){
   #computing total new population
   total_new = N_RR_new + N_RR_new + N_rr_new
   
-  freq_p = (N_RR_new * 2 + N_Rr_new )/ 2 * total_new
+  freq_p = ((N_RR_new * 2) + N_Rr_new )/ (2 * total_new)
   freq_q = 1 - freq_p
   
   #hardy weinberg random mating
@@ -283,7 +282,6 @@ mating_function <- function(N_RR_new, N_Rr_new, N_rr_new){
 return(c(N_RR_new, N_Rr_new, N_rr_new))
 }
 ```
-
 
 ### function to simulate one generation
 
@@ -351,7 +349,7 @@ simulate_pop_diploid <- function(N_RR, N_Rr, N_rr, decay_rate, sel_coeffs, mut_r
 # set t_max to a value to be used througout
 max_gen <- 100
 # create your simulation data
-output <- simulate_pop_diploid(N_RR = 100, N_Rr=100, N_rr=100, decay_rate=0.1, sel_coeffs=0.2, mut_rate=0.1,t_max=1000)
+output <- simulate_pop_diploid(N_RR = 100, N_Rr=100, N_rr=100, decay_rate=0.1, sel_coeffs=0.2, mut_rate=0.1,max_gen)
 # show the last few lines of the data table
 print(tail(output))
 # plot the output - note that the plot range and the x axis have to be adjusted based on the length of the table
@@ -366,5 +364,57 @@ lines(x_range,output[,2], col="red")
 lines(x_range,output[,3], col="green")
 ```
 
+# everything tetraploid NOW!!!
 
+![](images/clipboard-390528492.png)
 
+# mating algorithm for tetraploid
+
+```{r}
+### variables and parameters for diploid population
+#Variables:
+#N_RRRR_new = Number of RRRR individuals (>=0)
+#N_RRRr_new = Number of RRRr individuals (>=0)
+#N_RRrr_new = Number of RRrr individuals (>=0)
+#N_Rrrr_new = Number of Rrrr individuals (>=0)
+#N_rrrr_new = Number of rrrr individuals (>=0)
+#number of generations
+
+#Parameters:
+#N_RRRR = initial number of RRRR individuals(>=0)
+#N_RRRr = initial number of RRRr individuals(>=0)
+#N_RRrr = initial number of RRrr individuals(>=0)
+#N_Rrrr = initial number of Rrrr individuals(>=0)
+#N_rrrr = initial number of rrrr individuals(>=0)
+#decay_rate = power of herbicide application to kill individuals (>0 to have potential extinction)
+#sel_coeffs = selective advantage of the genotypes over others. (has to be between 0 and 1) for 0.01 = low fitness, 0,2 = intermediate fitness,  0.5 = high fitness (should be bigger than decay rate for evolutionary rescue likelyness)
+#mut_rate = mutation rate (>=0)
+
+# Function to simulate random mating for diploid genotypes
+mating_function <- function(N_RRRR_new, N_RRRr_new, N_RRrr_new, N_Rrrr_new, N_rrrr_new){
+  #computing total new population
+  total_new = N_RRRR_new + N_RRRr_new + N_RRrr_new + N_Rrrr_new + N_rrrr_new
+  
+  freq_p = (N_RRRR_new * 4 + N_RRRr_new * 3 + N_RRrr_new * 2 + N_Rrrr )/ (4 * total_new)
+  freq_q = 1 - freq_p
+  
+  #hardy weinberg random mating
+  freq_RRRR <- (freq_p^4)
+  freq_RRRr <- (4 * freq_p^3 * freq_q)
+  freq_RRrr <- (6 * freq_p^2 * freq_q^2)
+  freq_Rrrr <- (4 * freq_q^3 * freq_p)
+  freq_rrrr <- (freq_q^4)
+  
+  #return to "expected" by multiplying freq with the pops
+  offspring_total <- total_new
+  
+  N_RRRR_new <- freq_RRRR * total_new
+  N_RRRr_new <- freq_RRRr * total_new
+  N_RRrr_new <- freq_RRrr * total_new
+  N_Rrrr_new <- freq_Rrrr * total_new
+  N_rrrr_new <- freq_rrrr * total_new
+
+  
+return(c(N_RR_new, N_Rr_new, N_rr_new))
+}
+```
