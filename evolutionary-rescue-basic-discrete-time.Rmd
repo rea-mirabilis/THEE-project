@@ -442,29 +442,80 @@ return(c(offsp_RRRR, offsp_RRRr, offsp_RRrr, offsp_Rrrr, offsp_rrrr))
 #sel_coeffs = c(0.01,0.5,0.8,0.5,0.01)
 
 # Function to simulate one generation for tetraploid genotypes
-simulate_one_gen_tetraploid <- function(N_RRRR, N_RRRr, N_RRrr, N_Rrrr, N_rrrr, decay_rate, sel_coeffs, mut_rate) {
+simulate_one_gen_tetraploid <- function(N_RRRR_new, N_RRRr_new, N_RRrr_new, N_Rrrr_new, N_rrrr_new, decay_rate, sel_coeffs, mut_rate) {
+  
+    #computing total new population
+  total_new <- N_RRRR_new + N_RRRr_new + N_RRrr_new + N_Rrrr_new + N_rrrr_new
+  
+
+  #calculate just the total gamete R and r 
+  
+  total_R <- (N_RRRR_new * 4 + N_RRRr_new * 3 + N_RRrr_new * 2 + N_Rrrr_new * 1)
+  total_r <- (N_rrrr_new * 4 + N_Rrrr_new * 3 + N_RRrr_new * 2 + N_RRRr_new * 1)
+  
+  
+  #and apply the mutation rate and then do the division
+  mut_R_to_r <- rpois(1, total_R * mut_rate)
+  mut_r_to_R <- rpois(1, total_r * mut_rate)
+  
+  total_R_aftermut <- max(total_R + mut_r_to_R - mut_R_to_r, 0)
+  total_r_aftermut <- max(total_r + mut_R_to_r - mut_r_to_R, 0)
+  
+  freq_p <- total_R_aftermut / (4 * total_new)
+  freq_q <- total_r_aftermut / (4 * total_new)
+  
+  
+#  printing freqs
+#  print("freq_q:")
+#  print(freq_q)
+#  print("freq_p:")
+#  print(freq_p)
+  
+  #hardy weinberg random mating
+  freq_RRRR <- (freq_p^4)
+  freq_RRRr <- (4 * freq_p^3 * freq_q)
+  freq_RRrr <- (6 * freq_p^2 * freq_q^2)
+  freq_Rrrr <- (4 * freq_q^3 * freq_p)
+  freq_rrrr <- (freq_q^4)
+  
+  #return to "expected" by multiplying freq with the pops
+  offspring_total <- total_new
+  
+  N_RRRR_new <- freq_RRRR * total_new
+  N_RRRr_new <- freq_RRRr * total_new
+  N_RRrr_new <- freq_RRrr * total_new
+  N_Rrrr_new <- freq_Rrrr * total_new
+  N_rrrr_new <- freq_rrrr * total_new
+
+  # Apply decay and selection coefficients for each genotype draw with rpois
+  offsp_RRRR <- rpois(1, N_RRRR_new * (1 - decay_rate + sel_coeffs[1]))
+  offsp_RRRr <- rpois(1, N_RRRr_new * (1 - decay_rate + sel_coeffs[2]))
+  offsp_RRrr <- rpois(1, N_RRrr_new * (1 - decay_rate + sel_coeffs[3]))
+  offsp_Rrrr <- rpois(1, N_Rrrr_new * (1 - decay_rate + sel_coeffs[4]))
+  offsp_rrrr <- rpois(1, N_rrrr_new * (1 - decay_rate + sel_coeffs[5]))
   
   # Mutations between genotypes (mutations from R to r, and vice versa)
-  mut_RRRR_to_RRRr <- rpois(1, N_RRRR * mut_rate)  # RRRR individuals mutate into RRRr
-  mut_RRRr_to_RRRR <- rpois(1, N_RRRR * mut_rate)  # RRRr individuals mutate into RRRR
-  mut_RRRr_to_RRrr <- rpois(1, N_RRRr * mut_rate)  # RRRr individuals mutate into RRrr
-  mut_RRrr_to_Rrrr <- rpois(1, N_RRrr * mut_rate)  # RRrr individuals mutate into Rrrr
-  mut_Rrrr_to_RRrr <- rpois(1, N_Rrrr * mut_rate)  # Rrrr individuals mutate into RRrr
-  mut_rrrr_to_Rrrr <- rpois(1, N_rrrr * mut_rate)  # rrrr individuals mutate into Rrrr
+#  mut_RRRR_to_RRRr <- rpois(1, offsp_RRRR * mut_rate)  # RRRR individuals mutate into RRRr
+#  mut_RRRr_to_RRRR <- rpois(1, offsp_RRRR * mut_rate)  # RRRr individuals mutate into RRRR
+#  mut_RRRr_to_RRrr <- rpois(1, offsp_RRRr * mut_rate)  # RRRr individuals mutate into RRrr
+#  mut_RRrr_to_Rrrr <- rpois(1, offsp_RRrr * mut_rate)  # RRrr individuals mutate into Rrrr
+#  mut_Rrrr_to_RRrr <- rpois(1, offsp_Rrrr * mut_rate)  # Rrrr individuals mutate into RRrr
+#  mut_rrrr_to_Rrrr <- rpois(1, offsp_rrrr * mut_rate)  # rrrr individuals mutate into Rrrr
   
-# HERE, I am not sure which mutations should I consider, should it be like everyone can mutate to their neighbor or only some types of mutations?
-  
+
   
   # Update population sizes based on mutations and offspring survival
-  N_RRRR_new <- max(N_RRRR + mut_RRRr_to_RRRR - mut_RRRR_to_RRRr, 0)
-  N_RRRr_new <- max(N_RRRr + mut_RRRR_to_RRRr - mut_RRRr_to_RRrr, 0)
-  N_RRrr_new <- max(N_RRrr + mut_Rrrr_to_RRrr - mut_RRrr_to_Rrrr, 0)
-  N_Rrrr_new <- max(N_Rrrr + mut_RRrr_to_Rrrr - mut_Rrrr_to_RRrr, 0)
-  N_rrrr_new <- max(N_rrrr - mut_rrrr_to_Rrrr, 0)
+#  offsp_RRRR_new <- max(offsp_RRRR + mut_RRRr_to_RRRR - mut_RRRR_to_RRRr, 0)
+#  offsp_RRRr_new <- max(offsp_RRRr + mut_RRRR_to_RRRr - mut_RRRr_to_RRrr, 0)
+#  offsp_RRrr_new <- max(offsp_RRrr + mut_Rrrr_to_RRrr - mut_RRrr_to_Rrrr, 0)
+#  offsp_Rrrr_new <- max(offsp_Rrrr + mut_RRrr_to_Rrrr - mut_Rrrr_to_RRrr, 0)
+#  offsp_rrrr_new <- max(offsp_rrrr - mut_rrrr_to_Rrrr, 0)
   
   
-  # call the mating function for creating offspring
-  mating_function(N_RRRR_new, N_RRRr_new, N_RRrr_new, N_Rrrr_new, N_rrrr_new, decay_rate)
+  
+  
+return(c(offsp_RRRR, offsp_RRRr, offsp_RRrr, offsp_Rrrr, offsp_rrrr))
+  
 }
 
 
@@ -499,7 +550,7 @@ simulate_pop_tetraploid <- function(N_init_RRRR, N_init_RRRr, N_init_RRrr, N_ini
     pop_current <- pop_next
     
     # Early stop condition: if population drops to zero or exceeds a threshold
-    if (sum(pop_next) == 0 || sum(pop_next) >= 1.5 * sum(pop_matrix[1,])) {
+    if (sum(pop_next) == 0 || sum(pop_next) >= 5 * sum(pop_matrix[1,])) {
       break
     }
   }
@@ -508,20 +559,22 @@ simulate_pop_tetraploid <- function(N_init_RRRR, N_init_RRRr, N_init_RRrr, N_ini
 }
 
 # Parameters
-decay_rate <- 0.01
+decay_rate <- 0.001
 sel_coeffs <- c(0.01, 0.3, 0.5, 0.3, 0.01)
 mut_rate <- 0.001
 t_max <- 10
 
 # Initial population sizes for each genotype
 N_init_RRRR <- 100
-N_init_RRRr <- 100
-N_init_RRrr <- 100
-N_init_Rrrr <- 100
-N_init_rrrr <- 100
+N_init_RRRr <- 10
+N_init_RRrr <- 0
+N_init_Rrrr <- 0
+N_init_rrrr <- 0
 
 # Run the simulation and store the output
 pop_result <- simulate_pop_tetraploid(N_init_RRRR, N_init_RRRr, N_init_RRrr, N_init_Rrrr, N_init_rrrr, decay_rate, sel_coeffs, mut_rate, t_max)
+
+print(pop_result)
 
 # Plot the results
 x_range <- 0:(nrow(pop_result) - 1)
