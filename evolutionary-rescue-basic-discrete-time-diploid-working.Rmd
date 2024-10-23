@@ -589,32 +589,30 @@ legend("topright", legend=c("RRRR", "RRRr", "RRrr", "Rrrr", "rrrr"), col=c("blue
 #sel coef table creation
 
 ```{r}
-create_sel_coeffs <- function(s_number, biggest_S, decay_rate) {
+create_sel_coeffs <- function(s_number, biggest_S, r) {
   
  sel_coeffs_table <- matrix(0, nrow = s_number + 1, ncol = 5)
   colnames(sel_coeffs_table) <- c("sc_low", "sc_medium", "sc_high", "sc_medium", "sc_low")
-  r <- decay_rate
   s <- 0
   sel_coeffs_table[1,] <- c(1-r, 1-r + s/2, 1-r + s , 1-r + s/2, 1-r)
   # Initialize the table
   sc_current <- c(1-r, 1-r + s/2, 1-r + s , 1-r + s/2, 1-r)
   
   # Run the table creation
-  for (i in 1:s_number) {
+  for (i in 1:s_number + 1) {
     sc_next <- c(1-r, 1-r + s/2, 1-r + s , 1-r + s/2, 1-r)
     sel_coeffs_table[i,] <- sc_next
     sc_current <- sc_next
 
     if (s <= biggest_S) {
-      s <- (s + 0.10)
+      s <- (s + 0.05)
       }
    }
   
   return(sel_coeffs_table)
    }
 
-
-print(create_sel_coeffs(s_number = 20, biggest_S = 3, decay_rate = 0.175))
+print(create_sel_coeffs(s_number = 20, biggest_S = 3, r=0.9))
 ```
 
 
