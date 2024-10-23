@@ -498,7 +498,7 @@ simulate_pop_tetraploid <- function(N_init_RRRR, N_init_RRRr, N_init_RRrr, N_ini
 #  }
   
   # Create a matrix to save population results
-  pop_matrix <- matrix(0, nrow = t_max + 1, ncol = 5)
+  pop_matrix <- matrix(NA, nrow = t_max + 1, ncol = 5)
   colnames(pop_matrix) <- c("RRRR", "RRRr", "RRrr", "Rrrr", "rrrr")
   pop_matrix[1,] <- c(N_init_RRRR, N_init_RRRr, N_init_RRrr, N_init_Rrrr, N_init_rrrr)
   
@@ -512,7 +512,7 @@ simulate_pop_tetraploid <- function(N_init_RRRR, N_init_RRRr, N_init_RRrr, N_ini
     pop_current <- pop_next
     
     # Early stop condition: if population drops to zero or exceeds a threshold
-    if (sum(pop_next) == 0 || sum(pop_next) >= 5 * sum(pop_matrix[1,])) {
+    if (sum(pop_next) == 0 || sum(pop_next) >= 1000 * sum(pop_matrix[1,])) {
       break
     }
   }
@@ -598,12 +598,12 @@ init_Rrrr <- 0
 init_rrrr <- 1000
 m_rate <- 0.01
 max_gen <- 1000
-decay_rate <- 0.175
+decay_rate <- 0.15
 # determine how often to run the simulation for each set of parameters
-replicates <- 5
+replicates <- 20
 
 #call the seltable here.
-seltable <- create_sel_coeffs(s_number = 20, biggest_S = 3, inc = 0.05)
+seltable <- create_sel_coeffs(s_number = 6, biggest_S = 3, inc = 0.05)
 
 # initialize vector - where to collect the probablitys
 pr <- numeric(nrow(seltable))
@@ -613,19 +613,32 @@ for(i in 1:nrow(seltable)){
   # loop over selection coefficients
     sel_coeffs <- seltable[i, ]
     j<-1
+    success <- 0
     repeat {
       j <- j+1
-      print(j)
       # increase counter by one
-      success<- 0
+    
       # run the simulation once
       first_run <- simulate_pop_tetraploid(N_init_RRRR, N_init_RRRr, N_init_RRrr, N_init_Rrrr, N_init_rrrr, decay_rate, sel_coeffs, mut_rate, t_max)
-  
-   # determine if the population survived
-      total_pop_in_the_end = first_run[,1] + first_run[,2] + first_run[,3]+ first_run[,4] + first_run[,5]
-      if(total_pop_in_the_end[nrow(first_run)] != 0 )
-      success = success+1 
-      pr[i] = success/replicates
-      if(j>replicates) break
+      
+      #complete cases to not take N/As we generated to fill the matrix
+      first_run_with_numbers <- first_run[complete.cases(first_run),]
+
+      #calculating total population size in the end
+    total_pop_in_the_end <- sum(as.numeric(first_run_with_numbers[nrow(first_run_with_numbers),]))
+    
+       # determine if the population survived
+      if(total_pop_in_the_end != 0) {
+        success <- success + 1
+        pr[i] = success/replicates
+        if(j>replicates) break
+      }
     }
 }
+
+print(pr)
+
+```
+
+
+```{r}
