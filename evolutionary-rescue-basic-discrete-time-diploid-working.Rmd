@@ -451,13 +451,6 @@ simulate_one_gen_tetraploid <- function(N_RRRR_new, N_RRRr_new, N_RRrr_new, N_Rr
   freq_p <- total_R_aftermut / (4 * total_new)
   freq_q <- total_r_aftermut / (4 * total_new)
   
-  
-#  printing freqs
-#  print("freq_q:")
-#  print(freq_q)
-#  print("freq_p:")
-#  print(freq_p)
-  
   #hardy weinberg random mating
   freq_RRRR <- (freq_p^4)
   freq_RRRr <- (4 * freq_p^3 * freq_q)
@@ -480,25 +473,6 @@ simulate_one_gen_tetraploid <- function(N_RRRR_new, N_RRRr_new, N_RRrr_new, N_Rr
   offsp_RRrr <- rpois(1, N_RRrr_new * (1 - decay_rate + sel_coeffs[3]))
   offsp_Rrrr <- rpois(1, N_Rrrr_new * (1 - decay_rate + sel_coeffs[4]))
   offsp_rrrr <- rpois(1, N_rrrr_new * (1 - decay_rate + sel_coeffs[5]))
-  
-  # old mut algo (we don't use) Mutations between genotypes (mutations from R to r, and vice versa)
-#  mut_RRRR_to_RRRr <- rpois(1, offsp_RRRR * mut_rate)  # RRRR individuals mutate into RRRr
-#  mut_RRRr_to_RRRR <- rpois(1, offsp_RRRR * mut_rate)  # RRRr individuals mutate into RRRR
-#  mut_RRRr_to_RRrr <- rpois(1, offsp_RRRr * mut_rate)  # RRRr individuals mutate into RRrr
-#  mut_RRrr_to_Rrrr <- rpois(1, offsp_RRrr * mut_rate)  # RRrr individuals mutate into Rrrr
-#  mut_Rrrr_to_RRrr <- rpois(1, offsp_Rrrr * mut_rate)  # Rrrr individuals mutate into RRrr
-#  mut_rrrr_to_Rrrr <- rpois(1, offsp_rrrr * mut_rate)  # rrrr individuals mutate into Rrrr
-  
-  
-  # Update population sizes based on mutations and offspring survival
-#  offsp_RRRR_new <- max(offsp_RRRR + mut_RRRr_to_RRRR - mut_RRRR_to_RRRr, 0)
-#  offsp_RRRr_new <- max(offsp_RRRr + mut_RRRR_to_RRRr - mut_RRRr_to_RRrr, 0)
-#  offsp_RRrr_new <- max(offsp_RRrr + mut_Rrrr_to_RRrr - mut_RRrr_to_Rrrr, 0)
-#  offsp_Rrrr_new <- max(offsp_Rrrr + mut_RRrr_to_Rrrr - mut_Rrrr_to_RRrr, 0)
-#  offsp_rrrr_new <- max(offsp_rrrr - mut_rrrr_to_Rrrr, 0)
-  
-  
-  
   
 return(c(offsp_RRRR, offsp_RRRr, offsp_RRrr, offsp_Rrrr, offsp_rrrr))
   
@@ -589,7 +563,7 @@ legend("topright", legend=c("RRRR", "RRRr", "RRrr", "Rrrr", "rrrr"), col=c("blue
 #sel coef table creation
 
 ```{r}
-create_sel_coeffs <- function(s_number, biggest_S, r) {
+create_sel_coeffs <- function(s_number, biggest_S, r, inc) {
   
  sel_coeffs_table <- matrix(0, nrow = s_number + 1, ncol = 5)
   colnames(sel_coeffs_table) <- c("sc_low", "sc_medium", "sc_high", "sc_medium", "sc_low")
@@ -597,22 +571,21 @@ create_sel_coeffs <- function(s_number, biggest_S, r) {
   sel_coeffs_table[1,] <- c(1-r, 1-r + s/2, 1-r + s , 1-r + s/2, 1-r)
   # Initialize the table
   sc_current <- c(1-r, 1-r + s/2, 1-r + s , 1-r + s/2, 1-r)
-  
   # Run the table creation
   for (i in 1:s_number + 1) {
     sc_next <- c(1-r, 1-r + s/2, 1-r + s , 1-r + s/2, 1-r)
     sel_coeffs_table[i,] <- sc_next
     sc_current <- sc_next
-
+    
+    #growing s by increment(inc) we set until it's too big
     if (s <= biggest_S) {
-      s <- (s + 0.05)
+      s <- (s + inc)
       }
    }
-  
   return(sel_coeffs_table)
    }
 
-print(create_sel_coeffs(s_number = 20, biggest_S = 3, r=0.9))
+print(create_sel_coeffs(s_number = 20, biggest_S = 3, r=0.9, inc = 0.05))
 ```
 
 
