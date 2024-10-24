@@ -258,30 +258,6 @@ T_max = maximum generation number.
 #decay_rate = power of herbicide application to kill individuals (>0 to have potential extinction)
 #sel_coeffs = selective advantage of the genotypes over others. (has to be between 0 and 1) for 0.01 = low fitness, 0,2 = intermediate fitness,  0.5 = high fitness (should be bigger than decay rate for evolutionary rescue likelyness)
 #mut_rate = mutation rate (>=0)
-
-# Function to simulate random mating for diploid genotypes
-<<<<<<< Updated upstream
-mating_function <- function(N_RR_new, N_Rr_new, N_rr_new){
-  #computing total new population
-  total_new = N_RR_new + N_RR_new + N_rr_new
-  
-  freq_p = (N_RR_new * 2 + N_Rr_new )/ 2 * total_new
-  freq_q = 1 - freq_p
-  
-  #hardy weinberg random mating
-  freq_RR <- freq_p^2
-  freq_Rr <- (2 * freq_p * freq_q)
-  freq_rr <- freq_q^2
-  
-  #return to "expected" by multiplying freq with the pops
-  offspring_total <- total_new
-  
-  N_RR_new <- freq_RR * total_new
-  N_Rr_new <- freq_Rr * total_new
-  N_rr_new <- freq_rr * total_new
-=======
->>>>>>> Stashed changes
-
 ```
 
 
@@ -331,7 +307,7 @@ simulate_one_gen_diploid <- function(N_RR, N_Rr, N_rr, decay_rate, sel_coeffs, m
 
 
 #test the function
-print(simulate_one_gen_diploid(Init_RR=0, Init_Rr=0, Init_rr=100, 0.1, sel_coeffs, 0.01))
+print(simulate_one_gen_diploid(N_RR=0, N_Rr=0, N_rr=100, 0.1, c(0,0.1,0.2,0.1,0), 0.01))
 ```
 
 # simulating diploid population ----
