@@ -241,8 +241,6 @@ T_max = maximum generation number.
 
 # simulating one generation in a diploid population
 
-
-### first the mating function according to hardy weinberg
 ```{r}
 ### variables and parameters for diploid population
 #Variables:
@@ -270,15 +268,19 @@ simulate_one_gen_diploid <- function(N_RR, N_Rr, N_rr, decay_rate, sel_coeffs, m
 
   total = N_RR + N_Rr + N_rr
   
-  #mut for gametes
+  #calculating total gametes
   total_R = N_RR *2 + N_Rr
   total_r = N_rr *2 + N_Rr
   
+  
+  #mutating r to R
   mut_r_to_R <- rpois(1, total_r * mut_rate)
   
+  #calculating gametes after mutation
   total_R_aftermut <- max(total_R + mut_r_to_R, 0)
   total_r_aftermut <- max(total_r - mut_r_to_R, 0)
   
+  #calculating gamet frequencies p and q
   freq_p <- total_R_aftermut / (2 * total)
   freq_q <- total_r_aftermut / (2 * total)
   
@@ -289,8 +291,6 @@ simulate_one_gen_diploid <- function(N_RR, N_Rr, N_rr, decay_rate, sel_coeffs, m
   freq_rr <- freq_q^2
   
   #return to "expected" by multiplying freq with the pops
-  offspring_total <- total
-  
   N_RR <- freq_RR * total
   N_Rr <- freq_Rr * total
   N_rr <- freq_rr * total
@@ -319,6 +319,11 @@ simulate_pop_diploid <- function(N_RR, N_Rr, N_rr, decay_rate, sel_coeffs, mut_r
   # initiate the variables
   pop_new <- c(N_RR, N_Rr, N_rr)
   
+  #take the values of initial variables
+  init_RR <- N_RR
+  init_Rr <- N_Rr
+  init_rr <- N_rr
+  
   # run the simulation until generation t_max
   for (i in 1:t_max+1) {
     # redefine the current population one generation later
@@ -335,17 +340,12 @@ simulate_pop_diploid <- function(N_RR, N_Rr, N_rr, decay_rate, sel_coeffs, mut_r
   # return the result
   return(pop_vector)	
 }
-# Test the function and plot the result
-# set t_max to a value to be used througout
-max_gen <- 100
-# create your simulation data
-#<<<<<<< Updated upstream
-#output <- simulate_pop_diploid(N_RR = 100, N_Rr=100, N_rr=100, decay_rate=0.1, #sel_coeffs=0.2, mut_rate=0.1,t_max=1000)
-#=======
-output <- simulate_pop_diploid(N_RR = 0, N_Rr=0, N_rr=1000, decay_rate=0.175, sel_coeffs, mut_rate=0.05,max_gen)
-#>>>>>>> Stashed changes
+
+output <- simulate_pop_diploid(N_RR = 0, N_Rr=0, N_rr=1000, decay_rate=0.175, sel_coeffs = c(0,0.1,0.2,0.1,0), mut_rate=0.05,t_max = 100)
+
 # show the last few lines of the data table
 print(tail(output))
+
 # plot the output - note that the plot range and the x axis have to be adjusted based on the length of the table
 # determine x axis range 
 x_range <- 0:(length(output[,1])-1)
@@ -357,7 +357,6 @@ lines(x_range,output[,1], col="blue")
 lines(x_range,output[,2], col="red")
 lines(x_range,output[,3], col="green")
 ```
-
 
 
 =======
@@ -444,15 +443,9 @@ return(c(offsp_RRRR, offsp_RRRr, offsp_RRrr, offsp_Rrrr, offsp_rrrr))
   
 }
 
-# setting the numbers of the initial population
-Init_RRRR = 100
-Init_RRRr = 100
-Init_RRrr = 100
-Init_Rrrr = 100
-Init_rrrr = 100
 
 # test the function
-print(simulate_one_gen_tetraploid(Init_RRRR, Init_RRRr, Init_RRrr, Init_Rrrr, Init_rrrr, 0.01, sel_coeffs, 0.01))
+print(simulate_one_gen_tetraploid(N_RRRR_new = 0, N_RRRr_new = 0, N_RRrr_new = 0, N_Rrrr_new = 0, N_rrrr_new = 1000, 0.01, sel_coeffs = c(0,0.1,0.2,0.1,0), 0.01))
 ```
 
 # simulating population tetraploid
@@ -491,40 +484,23 @@ simulate_pop_tetraploid <- function(N_init_RRRR, N_init_RRRr, N_init_RRrr, N_ini
   return(pop_matrix)
 }
 
-# Parameters
-decay_rate <- 0.175
-#different s sel coeffs
-#s = 0.1 low
-
-
-mut_rate <- 0.08
-t_max <- 100
-
-# Initial population sizes for each genotype
-N_init_RRRR <- 0
-N_init_RRRr <- 0
-N_init_RRrr <- 0
-N_init_Rrrr <- 0
-N_init_rrrr <- 1000
 
 # Run the simulation and store the output
-pop_result <- simulate_pop_tetraploid(N_init_RRRR, N_init_RRRr, N_init_RRrr, N_init_Rrrr, N_init_rrrr, decay_rate, sel_coeffs, mut_rate, t_max)
+pop_result <- simulate_pop_tetraploid(N_init_RRRR = 0, N_init_RRRr = 0, N_init_RRrr = 0, N_init_Rrrr = 0, N_init_rrrr = 1000, decay_rate = 0.17, sel_coeffs = c(0,0.1,0.2,0.1,0), mut_rate = 0.001, t_max = 100)
 
 print(pop_result)
 
 # Plot the results
-x_range <- 0:(nrow(pop_result) - 1)
-plot(x_range, rowSums(pop_result), type='l', ylim=c(0, max(rowSums(pop_result))), xlab="Generation", ylab="Population Size", col="black")
-lines(x_range, pop_result[,1], col="blue", lty=1)  # RRRR
-lines(x_range, pop_result[,2], col="red", lty=2)   # RRRr
-lines(x_range, pop_result[,3], col="green", lty=3) # RRrr
-lines(x_range, pop_result[,4], col="purple", lty=4)# Rrrr
-lines(x_range, pop_result[,5], col="orange", lty=5)# rrrr
+#x_range <- 0:(nrow(pop_result) - 1)
+#plot(x_range, rowSums(pop_result), type='l', ylim=c(0, max(rowSums(pop_result))), xlab="Generation", ylab="Population Size", col="black")
+#lines(x_range, pop_result[,1], col="blue", lty=1)  # RRRR
+#lines(x_range, pop_result[,2], col="red", lty=2)   # RRRr
+#lines(x_range, pop_result[,3], col="green", lty=3) # RRrr
+#lines(x_range, pop_result[,4], col="purple", lty=4)# Rrrr
+#lines(x_range, pop_result[,5], col="orange", lty=5)# rrrr
 
-legend("topright", legend=c("RRRR", "RRRr", "RRrr", "Rrrr", "rrrr"), col=c("blue", "red", "green", "purple", "orange"), lty=1:5)
+#legend("topright", legend=c("RRRR", "RRRr", "RRrr", "Rrrr", "rrrr"), col=c("blue", "red", "green", "purple", "orange"), lty=1:5)
 ```
->>>>>>> Stashed changes
-
 
 
 #sel coef table creation
@@ -566,15 +542,15 @@ init_RRRR <- 0
 init_RRRr <- 0
 init_RRrr <- 0
 init_Rrrr <- 0
-init_rrrr <- 1000
-m_rate <- 0.01 ### 0.001
+init_rrrr <- 250
+mut_rate <- 0.01
 max_gen <- 100
 decay_rate <- 0.155
 # determine how often to run the simulation for each set of parameters
-replicates <- 50
+replicates <- 500
 
 #call the seltable here.
-seltable <- create_sel_coeffs(s_number = 50, biggest_S = 3, inc = 0.0045)
+seltable <- create_sel_coeffs(s_number = 42, biggest_S = 3, inc = 0.005)
 
 print(seltable)
 
@@ -616,10 +592,10 @@ print(pr)
 
 init_RR = 0
 init_Rr = 0
-init_rr = 1000
+init_rr = 250
 
 pr_diploid <- numeric(nrow(seltable))
-replicates_diploid <- 50
+replicates_diploid <- 500
 for(k in 1:nrow(seltable)){
   # loop over selection coefficients
     sel_coeffs <- seltable[k, ]
@@ -648,9 +624,6 @@ for(k in 1:nrow(seltable)){
 }
 
 
-
-print(seltable)
-
 plot(pr * 100, type = "b", col = "blue", pch = 15, xlab = "Heterozygote Advantage",
      ylab = "Success Rate(%)", main = "Tetraploid", ylim = c(0, 100), las = 1)
 
@@ -664,222 +637,14 @@ plot(pr * 100, type = "b", col = "blue", pch = 15, xlab = "Heterozygote Advantag
 # Add diploid success rate to the same plot
 lines(pr_diploid * 100, type = "b", col = "red", pch = 16, lty = 2)
 
-#x_values <- (seltable[, 3] * 10)
-#axis(1, at = 1:length(x_values), labels = round(x_values, 1)) # Use rounded values from 3rd column
+x_values <- (seltable[, 3] * 10)
+axis(1, at = 1:length(x_values), labels = round(x_values, 1)) # Use rounded values from 3rd column
 
 # Add gridlines for better readability
 grid()
 
 # Add legend
 legend("bottomright", legend=c("Tetraploid", "Diploid"), col=c("blue", "red"), pch=c(15, 16), lty=c(1, 2))
-
-
-```
-```{r}
-#trying what happens with not heterozygot advantage but the count of R alleles
-create_sel_coeffs_R <- function(s_number, biggest_S, inc) {
-  
- sel_coeffs_table_R <- matrix(0, nrow = s_number + 1, ncol = 5)
-  colnames(sel_coeffs_table_R) <- c("sc_low", "sc_medium", "sc_intermediate", "sc_high", "sc_insane")
-  s <- 0.15
-  sc_current <- c(0,s/4, s/2 ,(s/4)*3, s)
-  # Run the table creation
-  for (i in 1:s_number + 1) {
-    sc_next <- c(0,s/4, s/2 ,(s/4)*3, s)
-    sel_coeffs_table_R[i,] <- sc_next
-    sc_current <- sc_next
-    
-    #growing s by increment(inc) we set until it's too big
-    if (s <= biggest_S) {
-      s <- (s + inc)
-      }
-   }
-  return(sel_coeffs_table_R)
-   }
-
-print(create_sel_coeffs_R(s_number = 20, biggest_S = 3, inc = 0.05))
-
-#create the table to use later
-seltable_R <- create_sel_coeffs_R(s_number = 20, biggest_S = 3, inc = 0.05)
-
-#the down you go in the table the more heterozygote advantage you have.
-
-```
-
-```{r}
-# set some parameters to fixed values
-init_RRRR <- 0
-init_RRRr <- 0
-init_RRrr <- 0
-init_Rrrr <- 0
-init_rrrr <- 250
-m_rate <- 0.01
-max_gen <- 100
-decay_rate <- 0.155
-# determine how often to run the simulation for each set of parameters
-replicates <- 500
-
-#call the seltable here.
-seltable_R <- create_sel_coeffs_R(s_number = 50, biggest_S = 3, inc = 0.0045)
-
-print(seltable_R)
-
-# initialize vector - where to collect the probablitys
-pr <- numeric(nrow(seltable_R))
-
-# initialize lists to collect freqs
-R_freq_tetraploid_list <- numeric(replicates)
-r_freq_tetraploid_list <- numeric(replicates)
-
-# run the simulation across all chosen parameters
-# loop over sel coefs tetraploid
-for(i in 1:nrow(seltable_R)){
-  # loop over selection coefficients
-    sel_coeffs <- seltable_R[i, ]
-    j<-1
-    success <- 0
-    repeat {
-      j <- j+1
-      # increase counter by one
-    
-      # run the simulation once
-      first_run <- simulate_pop_tetraploid(init_RRRR, init_RRRr, init_RRrr, init_Rrrr, init_rrrr, decay_rate, sel_coeffs, mut_rate, max_gen)
-      
-      #complete cases to not take N/As we generated to fill the matrix
-      first_run_with_numbers <- first_run[complete.cases(first_run),]
-
-      #calculating total population size in the end
-    total_pop_in_the_end <- sum(as.numeric(first_run_with_numbers[nrow(first_run_with_numbers),]))
-    
-    
-    total_RRRR_in_the_end_pop_tetraploid <- first_run_with_numbers[nrow(first_run_with_numbers),1]
-    total_RRRr_in_the_end_pop_tetraploid <- first_run_with_numbers[nrow(first_run_with_numbers),2]
-    total_RRrr_in_the_end_pop_tetraploid <- first_run_with_numbers[nrow(first_run_with_numbers),3]
-    total_Rrrr_in_the_end_pop_tetraploid <- first_run_with_numbers[nrow(first_run_with_numbers),4]
-    total_rrrr_in_the_end_pop_tetraploid <- first_run_with_numbers[nrow(first_run_with_numbers),5]
-    total_pop_in_the_end_tetraploid <- sum(as.numeric(first_run_with_numbers[nrow(first_run_with_numbers),]))
-    
-    R_freq_tetraploid <- (total_RRRR_in_the_end_pop_tetraploid * 4 + total_RRRr_in_the_end_pop_tetraploid * 3 + total_RRrr_in_the_end_pop_tetraploid * 2 + total_Rrrr_in_the_end_pop_tetraploid) / (4 * total_pop_in_the_end_tetraploid)
-    r_freq_tetraploid <- 1 - R_freq_tetraploid
-    
-    # Store the frequencies for each replicate
-    R_freq_tetraploid_list[i] <- R_freq_tetraploid
-    r_freq_tetraploid_list[i] <- r_freq_tetraploid
-    
-       # determine if the population survived
-      if(total_pop_in_the_end != 0) {
-        success <- success + 1
-      }
-        pr[i] = success/replicates
-        
-        if(j>=replicates) break
-      
-    }
-}
-
-print(pr)
-
-
-init_RR = 0
-init_Rr = 0
-init_rr = 250
-m_rate <- 0.01
-max_gen <- 100
-decay_rate <- 0.155
-
-#generating the vector that will store the result
-pr_diploid <- numeric(nrow(seltable_R))
-
-#generating the lists for storing freq proportions
-R_freq_diploid_list <- numeric(replicates_diploid)
-r_freq_diploid_list <- numeric(replicates_diploid)
-
-RR_freq_diploid_list <- numeric(replicates_diploid)
-
-
-replicates_diploid <- 500
-for(k in 1:nrow(seltable_R)){
-  # loop over selection coefficients
-    sel_coeffs <- seltable_R[k, ]
-    l<-1
-    success_diploid <- 0
-    repeat {
-      l <- l+1
-      # increase counter by one
-      # run the simulation once
-      first_run_diploid <- simulate_pop_diploid(init_RR, init_Rr, init_rr, decay_rate, sel_coeffs, mut_rate, max_gen)
-      
-      #complete cases to not take N/As we generated to fill the matrix
-      first_run_with_numbers_diploid <- first_run_diploid[complete.cases(first_run_diploid),]
-
-      #calculating total population size in the end
-    total_pop_in_the_end_diploid <- sum(as.numeric(first_run_with_numbers_diploid[nrow(first_run_with_numbers_diploid),]))
-    
-    #calculating different genotypes
-    total_RR_in_the_end_pop_diploid <- first_run_with_numbers_diploid[nrow(first_run_with_numbers_diploid),1]
-    total_Rr_in_the_end_pop_diploid <- first_run_with_numbers_diploid[nrow(first_run_with_numbers_diploid),2]
-    total_rr_in_the_end_pop_diploid <- first_run_with_numbers_diploid[nrow(first_run_with_numbers_diploid),3]
-   
- 
-       # determine if the population survived
-      if(total_pop_in_the_end_diploid != 0) {
-        success_diploid <- success_diploid + 1
-        
-        R_freq_diploid <- R_freq_diploid + (((total_RR_in_the_end_pop_diploid * 2) + (total_Rr_in_the_end_pop_diploid)) / (2 * total_pop_in_the_end_diploid))
-        r_freq_diploid <- r_freq_diploid + (total_rr_in_the_end_pop_diploid * 2 /total_pop_in_the_end_diploid)
-      }
-      else{
-        R_freq_diploid <- 0
-        r_freq_diploid <- 0
-      }
-      
-        #  putting the calculated frequencies into the list
-        R_freq_diploid_list[k] <- R_freq_diploid / replicates_diploid
-        r_freq_diploid_list[k] <- r_freq_diploid / replicates_diploid
-      
-        pr_diploid[k] = success_diploid/replicates_diploid
-        if(l>=replicates_diploid) break
-      
-    }
-}
-
-
-
-print(seltable_R)
-
-plot(pr * 100, type = "b", col = "blue", pch = 15, xlab = "R advantage",
-     ylab = "Success Rate(%)", main = "Tetraploid", ylim = c(0, 100), las = 1)
-
-plot(pr_diploid * 100, type = "b", col = "red", pch = 15, xlab = "R Advantage",
-     ylab = "Success Rate(%)", main = "Diploid", ylim = c(0, 100), las = 1)
-
-# Plot the success rate (pr) against R advantage
-plot(pr * 100, type = "b", col = "purple", pch = 15, xlab = "R Advantage",
-     ylab = "Success Rate(%)", main = "Tetraploid vs Diploid", ylim = c(0, 100), las = 1)
-
-# Add diploid success rate to the same plot
-lines(pr_diploid * 100, type = "b", col = "orange", pch = 16, lty = 2)
-
-#x_values <- (seltable[, 3] * 10)
-#axis(1, at = 1:length(x_values), labels = round(x_values, 1)) # Use rounded values from 3rd column
-
-# Add gridlines for better readability
-grid()
-
-# Add legend
-legend("bottomright", legend=c("Tetraploid", "Diploid"), col=c("purple", "orange"), pch=c(15, 16), lty=c(1, 2))
-
-
-
-
-# Now plot after normalization
-freq_matrix <- rbind(R_freq_diploid_list, r_freq_diploid_list)
-
-# Create a stacked barplot
-barplot(freq_matrix, beside = FALSE, col = c("pink", "lightgreen"),
-        main = "R and r Gamete Frequencies in Diploid Populations",
-        xlab = "increasing selcoef", ylab = "Frequency",
-        legend = c("R frequency", "r frequency"), args.legend = list(x = "topright"))
 
 
 ```

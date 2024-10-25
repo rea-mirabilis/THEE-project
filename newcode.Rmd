@@ -241,8 +241,6 @@ T_max = maximum generation number.
 
 # simulating one generation in a diploid population
 
-
-### first the mating function according to hardy weinberg
 ```{r}
 ### variables and parameters for diploid population
 #Variables:
@@ -270,15 +268,19 @@ simulate_one_gen_diploid <- function(N_RR, N_Rr, N_rr, decay_rate, sel_coeffs, m
 
   total = N_RR + N_Rr + N_rr
   
-  #mut for gametes
+  #calculating total gametes
   total_R = N_RR *2 + N_Rr
   total_r = N_rr *2 + N_Rr
   
+  
+  #mutating r to R
   mut_r_to_R <- rpois(1, total_r * mut_rate)
   
+  #calculating gametes after mutation
   total_R_aftermut <- max(total_R + mut_r_to_R, 0)
   total_r_aftermut <- max(total_r - mut_r_to_R, 0)
   
+  #calculating gamet frequencies p and q
   freq_p <- total_R_aftermut / (2 * total)
   freq_q <- total_r_aftermut / (2 * total)
   
@@ -289,8 +291,6 @@ simulate_one_gen_diploid <- function(N_RR, N_Rr, N_rr, decay_rate, sel_coeffs, m
   freq_rr <- freq_q^2
   
   #return to "expected" by multiplying freq with the pops
-  offspring_total <- total
-  
   N_RR <- freq_RR * total
   N_Rr <- freq_Rr * total
   N_rr <- freq_rr * total
@@ -319,6 +319,11 @@ simulate_pop_diploid <- function(N_RR, N_Rr, N_rr, decay_rate, sel_coeffs, mut_r
   # initiate the variables
   pop_new <- c(N_RR, N_Rr, N_rr)
   
+  #take the values of initial variables
+  init_RR <- N_RR
+  init_Rr <- N_Rr
+  init_rr <- N_rr
+  
   # run the simulation until generation t_max
   for (i in 1:t_max+1) {
     # redefine the current population one generation later
@@ -335,17 +340,12 @@ simulate_pop_diploid <- function(N_RR, N_Rr, N_rr, decay_rate, sel_coeffs, mut_r
   # return the result
   return(pop_vector)	
 }
-# Test the function and plot the result
-# set t_max to a value to be used througout
-max_gen <- 100
-# create your simulation data
-#<<<<<<< Updated upstream
-#output <- simulate_pop_diploid(N_RR = 100, N_Rr=100, N_rr=100, decay_rate=0.1, #sel_coeffs=0.2, mut_rate=0.1,t_max=1000)
-#=======
-output <- simulate_pop_diploid(N_RR = 0, N_Rr=0, N_rr=1000, decay_rate=0.175, sel_coeffs, mut_rate=0.05,max_gen)
-#>>>>>>> Stashed changes
+
+output <- simulate_pop_diploid(N_RR = 0, N_Rr=0, N_rr=1000, decay_rate=0.175, sel_coeffs = c(0,0.1,0.2,0.1,0), mut_rate=0.05,t_max = 100)
+
 # show the last few lines of the data table
 print(tail(output))
+
 # plot the output - note that the plot range and the x axis have to be adjusted based on the length of the table
 # determine x axis range 
 x_range <- 0:(length(output[,1])-1)
@@ -357,8 +357,6 @@ lines(x_range,output[,1], col="blue")
 lines(x_range,output[,2], col="red")
 lines(x_range,output[,3], col="green")
 ```
-
-<<<<<<< Updated upstream
 
 
 =======
@@ -445,15 +443,9 @@ return(c(offsp_RRRR, offsp_RRRr, offsp_RRrr, offsp_Rrrr, offsp_rrrr))
   
 }
 
-# setting the numbers of the initial population
-Init_RRRR = 100
-Init_RRRr = 100
-Init_RRrr = 100
-Init_Rrrr = 100
-Init_rrrr = 100
 
 # test the function
-print(simulate_one_gen_tetraploid(Init_RRRR, Init_RRRr, Init_RRrr, Init_Rrrr, Init_rrrr, 0.01, sel_coeffs, 0.01))
+print(simulate_one_gen_tetraploid(N_RRRR_new = 0, N_RRRr_new = 0, N_RRrr_new = 0, N_Rrrr_new = 0, N_rrrr_new = 1000, 0.01, sel_coeffs = c(0,0.1,0.2,0.1,0), 0.01))
 ```
 
 # simulating population tetraploid
@@ -492,40 +484,23 @@ simulate_pop_tetraploid <- function(N_init_RRRR, N_init_RRRr, N_init_RRrr, N_ini
   return(pop_matrix)
 }
 
-# Parameters
-decay_rate <- 0.175
-#different s sel coeffs
-#s = 0.1 low
-
-
-mut_rate <- 0.08
-t_max <- 100
-
-# Initial population sizes for each genotype
-N_init_RRRR <- 0
-N_init_RRRr <- 0
-N_init_RRrr <- 0
-N_init_Rrrr <- 0
-N_init_rrrr <- 1000
 
 # Run the simulation and store the output
-pop_result <- simulate_pop_tetraploid(N_init_RRRR, N_init_RRRr, N_init_RRrr, N_init_Rrrr, N_init_rrrr, decay_rate, sel_coeffs, mut_rate, t_max)
+pop_result <- simulate_pop_tetraploid(N_init_RRRR = 0, N_init_RRRr = 0, N_init_RRrr = 0, N_init_Rrrr = 0, N_init_rrrr = 1000, decay_rate = 0.17, sel_coeffs = c(0,0.1,0.2,0.1,0), mut_rate = 0.001, t_max = 100)
 
 print(pop_result)
 
 # Plot the results
-x_range <- 0:(nrow(pop_result) - 1)
-plot(x_range, rowSums(pop_result), type='l', ylim=c(0, max(rowSums(pop_result))), xlab="Generation", ylab="Population Size", col="black")
-lines(x_range, pop_result[,1], col="blue", lty=1)  # RRRR
-lines(x_range, pop_result[,2], col="red", lty=2)   # RRRr
-lines(x_range, pop_result[,3], col="green", lty=3) # RRrr
-lines(x_range, pop_result[,4], col="purple", lty=4)# Rrrr
-lines(x_range, pop_result[,5], col="orange", lty=5)# rrrr
+#x_range <- 0:(nrow(pop_result) - 1)
+#plot(x_range, rowSums(pop_result), type='l', ylim=c(0, max(rowSums(pop_result))), xlab="Generation", ylab="Population Size", col="black")
+#lines(x_range, pop_result[,1], col="blue", lty=1)  # RRRR
+#lines(x_range, pop_result[,2], col="red", lty=2)   # RRRr
+#lines(x_range, pop_result[,3], col="green", lty=3) # RRrr
+#lines(x_range, pop_result[,4], col="purple", lty=4)# Rrrr
+#lines(x_range, pop_result[,5], col="orange", lty=5)# rrrr
 
-legend("topright", legend=c("RRRR", "RRRr", "RRrr", "Rrrr", "rrrr"), col=c("blue", "red", "green", "purple", "orange"), lty=1:5)
+#legend("topright", legend=c("RRRR", "RRRr", "RRrr", "Rrrr", "rrrr"), col=c("blue", "red", "green", "purple", "orange"), lty=1:5)
 ```
->>>>>>> Stashed changes
-
 
 
 #sel coef table creation
@@ -568,7 +543,7 @@ init_RRRr <- 0
 init_RRrr <- 0
 init_Rrrr <- 0
 init_rrrr <- 250
-m_rate <- 0.01
+mut_rate <- 0.01
 max_gen <- 100
 decay_rate <- 0.155
 # determine how often to run the simulation for each set of parameters
