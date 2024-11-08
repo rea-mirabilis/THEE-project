@@ -14,7 +14,7 @@ code.rmd: The primary R script containing all simulation code.
 Presentation.pdf: A slide presentation summarizing the project’s goals, methods, and findings, designed to communicate insights from the simulation.
 
 3. Report
-report.md: A written report with detailed descriptions of the project background, objectives, methodology, results, and interpretations. This document also references key figures and data used in the presentation.
+report.docx: A written report with detailed descriptions of the project background, objectives, methodology, results, and interpretations. This document also references key figures and data used in the presentation.
 
 Subfolders:
 /plots: Stores output plots generated from the simulation for further analysis and presentation.
